@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My AI Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    
+    #chatbox {
+      width: 100%;
+      height: 400px;
+      overflow-y: scroll;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: white;
+    }
+    
+    .input-container {
+      display: flex;
+      gap: 10px;
+    }
+    
+    #user-input {
+      flex-grow: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    
+    #send-button {
+      padding: 10px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    #send-button:hover {
+      background-color: #45a049;
+    }
+    
+    .user-message {
+      background-color: #e1f5fe;
+      padding: 8px 12px;
+      border-radius: 15px;
+      margin: 5px 0;
+      max-width: 70%;
+      align-self: flex-end;
+      margin-left: auto;
+    }
+    
+    .bot-message {
+      background-color: #f0f0f0;
+      padding: 8px 12px;
+      border-radius: 15px;
+      margin: 5px 0;
+      max-width: 70%;
+    }
+  </style>
+</head>
+<body>
+  <h1>Simple AI Chatbot</h1>
+  
+  <div id="chatbox"></div>
+  
+  <div class="input-container">
+    <input type="text" id="user-input" placeholder="Type your message here..." />
+    <button id="send-button">Send</button>
+  </div>
+
+  <script>
+    // Get references to DOM elements
+    const chatbox = document.getElementById('chatbox');
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+    
+            // Added event listener for Enter key on page load
+        userInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            sendMessage();
+          }
+        });
+    
+    // Add event listener for button click
+    sendButton.addEventListener('click', sendMessage);
+    
+    async function sendMessage() {
+      const message = userInput.value.trim();
+      if (!message) return;
+
+      // Display user message
+      const userMessageElement = document.createElement('div');
+      userMessageElement.className = 'user-message';
+      userMessageElement.textContent = message;
+      chatbox.appendChild(userMessageElement);
+      
+      // Clear input and focus
+      userInput.value = '';
+      userInput.focus();
+      
+      // Show loading indicator
+      const loadingElement = document.createElement('div');
+      loadingElement.className = 'bot-message';
+      loadingElement.textContent = 'Thinking...';
+      chatbox.appendChild(loadingElement);
+      
+      // Scroll to bottom
+      chatbox.scrollTop = chatbox.scrollHeight;
+
+      try {
+        // Send to the Node.js backend
+        const response = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: message })
+        });
+
+        const data = await response.json();
+        
+        // Replace loading indicator with actual response
+        chatbox.removeChild(loadingElement);
+        
+        // Show bot reply
+        const botMessageElement = document.createElement('div');
+        botMessageElement.className = 'bot-message';
+        botMessageElement.textContent = data.reply || 'Sorry, I couldn\'t process that.';
+        chatbox.appendChild(botMessageElement);
+      } catch (error) {
+        // Handle errors
+        chatbox.removeChild(loadingElement);
+        
+        const errorElement = document.createElement('div');
+        errorElement.className = 'bot-message';
+        errorElement.textContent = 'Sorry, there was an error processing your request.';
+        chatbox.appendChild(errorElement);
+        
+        console.error('Error:', error);
+      }
+      
+      // Scroll to bottom again after adding the response
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+    
+    // Add welcome message
+    window.onload = function() {
+      const welcomeElement = document.createElement('div');
+      welcomeElement.className = 'bot-message';
+      welcomeElement.textContent = 'Hello! How can I help you today?';
+      chatbox.appendChild(welcomeElement);
+    };
+  </script>
+</body>
+</html>
